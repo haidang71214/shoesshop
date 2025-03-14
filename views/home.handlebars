@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Tạo Quiz</title>
+</head>
+<body>
+   <h2>Tạo Quiz Mới</h2>
+
+   <!-- Form tạo quiz -->
+   <form id="quiz-form">
+      <div>
+         <label for="title">Tiêu đề:</label>
+         <input type="text" id="title" name="title" required>
+      </div>
+      <div>
+         <label for="description">Mô tả:</label>
+         <input type="text" id="description" name="description" required>
+      </div>
+      <button type="submit">Tạo Quiz</button>
+   </form>
+
+   <script>
+      // Khi form được submit
+      document.getElementById('quiz-form').addEventListener('submit', function(event) {
+         event.preventDefault(); // Ngừng hành động mặc định của form
+
+         // Kiểm tra nếu token tồn tại trong localStorage
+         const token = localStorage.getItem('authToken');
+         if (!token) {
+            alert('Vui lòng đăng nhập trước!');
+            return;
+         }
+
+         // Lấy thông tin từ form
+         const title = document.getElementById('title').value;
+         const description = document.getElementById('description').value;
+
+         // Tạo đối tượng dữ liệu quiz (dạng JSON)
+         const quizData = {
+            title: title,
+            description: description
+         };
+
+         // Gửi yêu cầu tạo quiz qua API bằng fetch
+         fetch('http://localhost:8080/quiz/createQuiz', {
+            method: 'POST',
+            headers: {
+               'Content-Type': 'application/json',
+               'Authorization': `Bearer ${token}`  // Thêm token vào header
+            },
+            body: JSON.stringify(quizData)  // Chuyển đối tượng quizData thành chuỗi JSON
+         })
+         .then(response => response.json())  // Xử lý phản hồi từ server
+         .then(data => {
+            if (data.success) {
+               alert('Tạo quiz thành công!');
+            } else {
+               alert('Chắc là tạo quiz xong rồi');
+            }
+         })
+         .catch(error => {
+            console.error('Lỗi khi tạo quiz:', error);
+            alert('Có lỗi xảy ra, vui lòng thử lại!');
+         });
+      });
+   </script>
+</body>
+</html>
