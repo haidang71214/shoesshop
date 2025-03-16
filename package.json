@@ -60,6 +60,7 @@
     "morgan": "^1.10.0",
     "ms": "^2.0.0",
     "multer": "^1.4.5-lts.1",
+    "multer-storage-cloudinary": "^4.0.0",
     "mysql2": "^3.13.0",
     "negotiator": "^0.6.3",
     "nodemailer": "^6.10.0",

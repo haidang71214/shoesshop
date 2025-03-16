@@ -1,6 +1,19 @@
 import { users } from "../config/model/DE170023.js";
 import bcrypt from "bcrypt";
 
+const checkAdmin = async (userId) => {
+   try {
+     const user = await users.findById(userId);
+     if (!user) {
+       throw new Error("Người dùng không tồn tại.");
+     }
+     return user.role === 'admin';
+   } catch (error) {
+     console.error("Lỗi khi kiểm tra quyền admin:", error.message);
+     return false;
+   }
+ };
+
 const createUser = async (req, res) => {
    try {
        const { userName, password, role, email } = req.body;
@@ -34,10 +47,17 @@ const createUser = async (req, res) => {
 
 // thay đổi user theo id của user đó
 const updateUser = async(req,res) =>{
+   // check admin
    const {id} = req.params;
    const{userName,password}= req.body
    console.log(id);
+   const userId = req.user.id
    try {
+      const isAdmin = await checkAdmin(userId);
+    if (!isAdmin) {
+      return res.status(403).json({ message: "Bạn không có quyền thực hiện thao tác này." });
+    }
+
       await users.findByIdAndUpdate(id,{
          userName,
          password:bcrypt.hashSync(password,10)
@@ -47,6 +67,7 @@ const updateUser = async(req,res) =>{
       res.status(500).json({message:error})
    }
 }
+// nhớ file ảnh
 const updateSelf = async (req, res) => {
    try {
       const userId = req.user.id; 
@@ -75,8 +96,15 @@ const updateSelf = async (req, res) => {
 
 // xoá theo id của user đó
 const deleteUser = async (req, res) => {
+   // check admin
+   const userId = req.user.id
    const { id } = req.params;
    try {
+   const isAdmin = await checkAdmin(userId);
+    if (!isAdmin) {
+      return res.status(403).json({ message: "Bạn không có quyền thực hiện thao tác này." });
+    }
+
      const findUser = await users.findById(id);
      if (!findUser) {
        return res.status(404).json({ message: "Không tìm thấy user" });
@@ -89,9 +117,47 @@ const deleteUser = async (req, res) => {
  };
 
 
+
+
+const getAlluser = async(req,res) => {
+   const userId = req.user.id
+   try {
+      const isAdmin = await checkAdmin(userId);
+    if (!isAdmin) {
+      return res.status(403).json({ message: "Bạn không có quyền thực hiện thao tác này." });
+    }
+
+   const user = await users.find();
+         res.status(200).json({user})
+   } catch (error) {
+      res.status(500).json({message:error})
+   }
+}
+
+const getDetailUser = async(req,res) =>{
+   const {id} = req.params;
+   try {
+      const data = await users.findById(id);
+      res.status(200).json({data})
+   } catch (error) {
+      res.status(500).json({message:error})
+   }
+}
+const detailSelf = async(req,res) =>{
+   const userId = req.user.id;
+   try {
+      const findUser = await users.findById(userId)
+      res.status(200).json({findUser})
+   } catch (error) {
+      res.status(500).json({message:error})
+   }
+}
 export {
    createUser,
    updateUser,
    updateSelf,
-   deleteUser
+   deleteUser,
+   getAlluser,
+   getDetailUser,
+   detailSelf
 }
