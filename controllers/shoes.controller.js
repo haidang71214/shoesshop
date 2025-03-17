@@ -156,5 +156,54 @@ const createShoe = async (req, res) => {
     res.status(500).json({message:error})
   }
  }
+const shoeDeltail = async(req,res) =>{
+  const {id} = req.params
+  try {
+    const findShoe = await shoes.findOne({_id:id}).populate('colorShoes').populate('sizes');
+    res.status(200).json({findShoe})
+  } catch (error) {
+    res.status(500).json({message:error})
+  }
+}
+// tí check lại cái này
+//http://localhost:8080/shoes/filter?minPrice=100&maxPrice=500&size=40&color=red&page=1&limit=10
 
- export {createShoe,createColor,craeteSize,deleteSize,deleteVariants,deleteShoe}
+const filterByShoePriceAndSize = async (req, res) => {
+  const { minPrice, maxPrice, size, color, page = 1, limit = 10 } = req.query;
+
+  try {
+    let query = {};
+
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+
+    // Kết hợp điều kiện size và color trong cùng một variant bằng $elemMatch
+    if (size || color) {
+      query.variants = {
+        $elemMatch: {}
+      };
+      if (size) {
+        query.variants.$elemMatch["sizes.size"] = Number(size);
+      }
+      if (color) {
+        query.variants.$elemMatch["color.name"] = color;
+      }
+    }
+
+    // Phân trang và thực hiện truy vấn (không cần populate vì variants là embedded document)
+    const shoesList = await shoes
+      .find(query)
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    res.status(200).json({ shoes: shoesList });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+};
+
+
+ export {createShoe,createColor,craeteSize,deleteSize,deleteVariants,deleteShoe,shoeDeltail,filterByShoePriceAndSize}
