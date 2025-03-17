@@ -1,7 +1,7 @@
 import { users } from "../config/model/DE170023.js";
 import bcrypt from "bcrypt";
 
-const checkAdmin = async (userId) => {
+export const checkAdmin = async (userId) => {
    try {
      const user = await users.findById(userId);
      if (!user) {
@@ -17,7 +17,7 @@ const checkAdmin = async (userId) => {
 const createUser = async (req, res) => {
    try {
        const { userName, password, role, email } = req.body;
-
+     
        // Kiểm tra email hợp lệ bằng Regex
        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
        if (!emailRegex.test(email)) {
@@ -33,7 +33,7 @@ const createUser = async (req, res) => {
        // Hash mật khẩu và tạo user mới
        const newUser = await users.create({
            userName,
-           password: bcrypt.hashSync(password, 10),
+           password: bcrypt.hashSync(password, 12),
            email,
            role
        });
@@ -60,7 +60,7 @@ const updateUser = async(req,res) =>{
 
       await users.findByIdAndUpdate(id,{
          userName,
-         password:bcrypt.hashSync(password,10)
+         password:bcrypt.hashSync(password,12)
       })
       res.status(200).json({message:'Update thành công'})
    } catch (error) {
@@ -81,7 +81,7 @@ const updateSelf = async (req, res) => {
          userId,
          {
             userName: userName || findUser.userName, 
-            password: password ? bcrypt.hashSync(password, 10) : findUser.password,
+            password: password ? bcrypt.hashSync(password,12) : findUser.password,
             avartar: file ? file.path : findUser.avartar, 
          },
          { new: true } // trả về user mới

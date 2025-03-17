@@ -7,9 +7,9 @@ import transporter from "../config/transporter.js";
 const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const hashPassword = (password) => bcrypt.hashSync(password, 12);
 
-const authResponse = (res, user) => {
-  const accessToken = createTokenAsyncKey({ id: user._id });
-  const refreshToken = createRefTokenAsyncKey({ id: user._id });
+const authResponse = async (res, user) => {
+  const accessToken = await createTokenAsyncKey({ id: user._id });
+  const refreshToken = await createRefTokenAsyncKey({ id: user._id });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
@@ -17,11 +17,10 @@ const authResponse = (res, user) => {
     sameSite: "Strict",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
-
   return res.status(200).json({
     message: "Success",
     data: {
-      accessToken,
+      accessToken :accessToken,
       user: {
         id: user._id,
         email: user.email,
@@ -32,20 +31,17 @@ const authResponse = (res, user) => {
   });
 };
 
-// Đăng nhập thông thường
+// Đăng nhập
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    
+    const { email, password } = req.body;  
     if (!validateEmail(email)) {
       return res.status(400).json({ message: "Email không hợp lệ" });
     }
-
     const user = await users.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "Tài khoản không tồn tại" });
     }
-
     if (!bcrypt.compareSync(password, user.password)) {
       return res.status(401).json({ message: "Mật khẩu không chính xác" });
     }
@@ -88,11 +84,9 @@ const loginFacebook = async (req, res) => {
         role: "user",
       });
     }
-
     await users.findByIdAndUpdate(user._id, {
       refresh_token: createRefTokenAsyncKey({ id: user._id }),
     });
-
     return authResponse(res, user);
   } catch (error) {
     console.error("Facebook Login Error:", error);
@@ -111,7 +105,6 @@ const register = async (req, res) => {
     if (await users.findOne({ email })) {
       return res.status(409).json({ message: "Email đã được đăng ký" });
     }
-
     const newUser = await users.create({
       email,
       userName,

@@ -31,20 +31,24 @@ const user = new Schema({
       required:false
    }
 })
+
 const sizeSchema = new Schema({
-   size: { type: Number, required: true }, // VD: 38, 39, 40
-   stock: { type: Number, required: true, default: 0 } // Số lượng tồn kho của size đó
+   size: { type: Number, required: true }, 
+   stock: { type: Number, required: true, default: 0 } 
  });
+
 
 const variantSchema = new Schema({
   color: {
-    name: { type: String, required: true }, // VD: "Red"
-    code: { type: String, required: true }  // VD: "#FF0000"
+   name: { type: String,
+   required: true }, 
   },
-  sizes: [sizeSchema], // Danh sách size + số lượng tồn kho
-  images: [{ type: String, required: true }] // Ảnh theo màu
+   sizes: [sizeSchema], 
+   images: { type: String,
+   required: true } 
 });
 
+//
 const shoe = new Schema({
    name:{
       type:String,
@@ -73,8 +77,18 @@ const shoe = new Schema({
          "Giày slip-on"],
       required:true
    },
-
+   description: {
+      type: String,
+      required: false // Có thể không bắt buộc
+    },
+    image_url:{
+      type:String,
+      required:[true,"Phải có ảnh chớ"]
+    },
+    // match với bảng màu, mảng màu match với size
+    variants:[variantSchema]
 },{ timestamps: true })
+
 
 const banner =  new Schema({
    image:{
