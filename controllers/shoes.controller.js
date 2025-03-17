@@ -1,9 +1,15 @@
 import { colors, shoes, sizes } from "../config/model/DE170023.js";
 import { checkAdmin } from "./users.controller.js";
 const createShoe = async (req, res) => {
+  const userId = req.user.id;
    const { name, price, brand, category, description } = req.body;
    const file = req.file; 
    try {
+      const check = await checkAdmin(userId);
+      if(!check){
+        res.status(400).json({message:"Không có quyền"}) 
+      }
+
      if (!name || !price || !brand || !category) {
        return res.status(400).json({ 
          message: "Thiếu thông tin bắt buộc (name, price, brand, category)" 
